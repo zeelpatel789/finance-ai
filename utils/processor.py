@@ -24,7 +24,7 @@ class DocumentProcessingWorkflow:
         model_path = 'ml_models/category_classifier.pkl'
         if not self.categorizer.load_model(model_path):
             # Train with default data if model doesn't exist
-            self.categorizer.train(self.categorizer.get_training_data())
+            self.categorizer.train()
             # Save for future use
             os.makedirs('ml_models', exist_ok=True)
             self.categorizer.save_model(model_path)
