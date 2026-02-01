@@ -41,6 +41,8 @@ def create_app():
     from models.database import init_db, db
     from models.user import User
     from models.category import Category, DEFAULT_CATEGORIES
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
 
     # 🔥 FIX: Force correct static path (Render + Gunicorn safe)
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -50,6 +52,14 @@ def create_app():
         static_folder=os.path.join(BASE_DIR, "static"),
         static_url_path="/static"
     )
+
+    app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_port=1
+)
 
     app.config.from_object(Config)
 
