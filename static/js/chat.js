@@ -117,7 +117,7 @@ function displayConversationList(conversations) {
     `).join('');
 }
 
-// Update the loadConversation function to hide welcome on load:
+// Loads a conversation, renders messages, and auto-closes the sidebar
 async function loadConversation(conversationId) {
     try {
         const response = await fetch(`/api/chat/conversations/${conversationId}`);
@@ -151,8 +151,9 @@ async function loadConversation(conversationId) {
                 });
             }
             
-            // Update sidebar
+            // Update sidebar and close it
             loadConversationList();
+            closeSidebar();
             scrollToBottom();
         }
     } catch (error) {
@@ -192,17 +193,13 @@ function newChat() {
     createNewConversation();
     clearChatUI();
     loadConversationList();
+    closeSidebar();
 }
 
 function clearChatUI() {
     hasWelcomeMessage = false;
     showWelcomeMessage();
     document.getElementById('quickSuggestions').style.display = 'flex';
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('chatSidebar');
-    sidebar.classList.toggle('collapsed');
 }
 
 // ============= MESSAGE HANDLING =============
@@ -240,8 +237,9 @@ async function sendQuery(query) {
     // Add user message to UI
     addMessageToUI(query, 'user', true);
     
-    // Save user message to database
-    await saveMessage(query, 'user');
+    // NOTE: No separate saveMessage() call needed here.
+    // The backend POST /messages endpoint saves both the user
+    // message and the AI response in a single transaction.
     
     document.getElementById('quickSuggestions').style.display = 'none';
     showTypingIndicator();
@@ -251,7 +249,7 @@ async function sendQuery(query) {
         const timeoutId = setTimeout(() => controller.abort(), 30000);
         
         const response = await fetch(`/api/chat/conversations/${currentConversationId}/messages`, { 
-        method: 'POST',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: query }),
             signal: controller.signal
@@ -267,25 +265,25 @@ async function sendQuery(query) {
         const data = await response.json();
         
         if (data.success) {
-    // Response format changed - no need to save (already saved by backend)
-    const result = {
-        response: data.assistant_message.content,
-        intent: data.assistant_message.intent,
-        confidence: data.confidence,
-        data: data.data,
-        chart_type: data.chart_type,
-        processing_time: data.understanding?.processing_time
-    };
-    
-    addBotResponse(result);
-    
-    if (result.confidence && result.confidence < 50) {
-        addConfidenceWarning(result.confidence);
-    }
-    
-    // Refresh conversation list
-    loadConversationList();
-}
+            // Backend already saved both messages — just render the response
+            const result = {
+                response: data.assistant_message.content,
+                intent: data.assistant_message.intent,
+                confidence: data.confidence,
+                data: data.data,
+                chart_type: data.chart_type,
+                processing_time: data.understanding?.processing_time
+            };
+            
+            addBotResponse(result);
+            
+            if (result.confidence && result.confidence < 50) {
+                addConfidenceWarning(result.confidence);
+            }
+            
+            // Refresh conversation list
+            loadConversationList();
+        }
         
     } catch (error) {
         hideTypingIndicator();
@@ -746,58 +744,6 @@ function closeSidebar() {
     
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
-}
-
-// Close sidebar when clicking on a conversation
-async function loadConversation(conversationId) {
-    try {
-        const response = await fetch(`/api/chat/conversations/${conversationId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            currentConversationId = conversationId;
-            
-            // Clear messages and hide welcome
-            const messagesContainer = document.getElementById('chatMessages');
-            messagesContainer.innerHTML = '';
-            hasWelcomeMessage = true;
-            
-            // If no messages, show empty state
-            if (data.conversation.messages.length === 0) {
-                messagesContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">💬</div>
-                        <h3>No messages yet</h3>
-                        <p>Start the conversation!</p>
-                    </div>
-                `;
-            } else {
-                // Load messages
-                data.conversation.messages.forEach(msg => {
-                    if (msg.role === 'user') {
-                        addMessageToUI(msg.content, 'user', false);
-                    } else {
-                        addBotResponseSimple(msg.content, msg.confidence);
-                    }
-                });
-            }
-            
-            // Update sidebar and close it
-            loadConversationList();
-            closeSidebar(); // AUTO-CLOSE after selecting
-            scrollToBottom();
-        }
-    } catch (error) {
-        console.error('Failed to load conversation:', error);
-    }
-}
-
-// Update newChat to close sidebar
-function newChat() {
-    createNewConversation();
-    clearChatUI();
-    loadConversationList();
-    closeSidebar(); // AUTO-CLOSE after new chat
 }
 
 // Close sidebar on Escape key

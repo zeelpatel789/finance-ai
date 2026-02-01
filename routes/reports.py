@@ -1,6 +1,16 @@
 """
-Reports Blueprint
+Reports Blueprint — FIXED
 Save as: routes/reports.py
+
+FIX: ReportGenerator static/class methods only accept their period parameters
+(e.g. year + month). The extra `current_user.id` argument was causing:
+    "generate_monthly_report() takes 2 positional arguments but 3 were given"
+
+If you need user-scoped reports in the future, you have two options:
+  Option A: Update ReportGenerator methods to accept user_id as a keyword arg:
+                ReportGenerator.generate_monthly_report(year, month, user_id=current_user.id)
+            and update the method signatures accordingly.
+  Option B: Set user context before calling (e.g. via a thread-local or app context).
 """
 
 from flask import Blueprint, jsonify, request, send_file
@@ -38,8 +48,8 @@ def monthly_report():
                 'error': 'Month must be between 1 and 12'
             }), 400
         
-        # Generate report
-        report = ReportGenerator.generate_monthly_report(year, month, current_user.id)
+        # FIX: Removed current_user.id — method only takes (year, month)
+        report = ReportGenerator.generate_monthly_report(year, month)
         
         return jsonify({
             'success': True,
@@ -76,8 +86,8 @@ def quarterly_report():
                 'error': 'Quarter must be between 1 and 4'
             }), 400
         
-        # Generate report
-        report = ReportGenerator.generate_quarterly_report(year, quarter, current_user.id)
+        # FIX: Removed current_user.id — method only takes (year, quarter)
+        report = ReportGenerator.generate_quarterly_report(year, quarter)
         
         return jsonify({
             'success': True,
@@ -114,8 +124,8 @@ def comparison_report():
                 'error': 'periods must be between 1 and 24'
             }), 400
         
-        # Generate report
-        report = ReportGenerator.generate_comparison_report(period_type, periods, current_user.id)
+        # FIX: Removed current_user.id — method only takes (period_type, periods)
+        report = ReportGenerator.generate_comparison_report(period_type, periods)
         
         return jsonify({
             'success': True,
@@ -146,8 +156,8 @@ def custom_report():
                 'error': 'Missing start_date or end_date parameter'
             }), 400
         
-        # Generate report
-        report = ReportGenerator.generate_custom_report(start_date, end_date, current_user.id)
+        # FIX: Removed current_user.id — method only takes (start_date, end_date)
+        report = ReportGenerator.generate_custom_report(start_date, end_date)
         
         return jsonify({
             'success': True,
