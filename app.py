@@ -33,14 +33,32 @@ from routes.auth_routes import auth_bp  # NEW
 
 def create_app():
     """Application factory with authentication"""
-    app = Flask(__name__)
+
+    import os
+    from flask import Flask
+    from flask_login import LoginManager
+    from config import Config
+    from models.database import init_db, db
+    from models.user import User
+    from models.category import Category, DEFAULT_CATEGORIES
+
+    # 🔥 FIX: Force correct static path (Render + Gunicorn safe)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    app = Flask(
+        __name__,
+        static_folder=os.path.join(BASE_DIR, "static"),
+        static_url_path="/static"
+    )
+
     app.config.from_object(Config)
-    
+
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
+
     # Initialize database
     init_db(app)
+
     
     # ========================================================================
     # FLASK-LOGIN SETUP
