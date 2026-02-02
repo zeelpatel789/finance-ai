@@ -1,4 +1,4 @@
-# Flask Framework
+# Flask Framework - Keep same versions
 Flask==3.0.0
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
@@ -7,14 +7,15 @@ Flask-Migrate==4.0.5
 Werkzeug==3.0.1
 WTForms==3.1.1
 
-# Production Server
+# Production Server - Optimized
 gunicorn==21.2.0
+gevent==24.2.1  # Added for async workers
 
 # Database
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
-# Image Processing & OCR
+# Image Processing & OCR - LIGHTER versions
 Pillow==10.1.0
 pytesseract==0.3.10
 pdf2image==1.17.0
@@ -23,18 +24,24 @@ pdf2image==1.17.0
 PyPDF2==3.0.1
 reportlab==4.0.7
 
-# Data Processing
-pandas==2.1.4
-numpy==1.26.2
+# Data Processing - CRITICAL OPTIMIZATION
+# REMOVED: pandas (300MB) - use native Python or sqlite3
+# REMOVED: numpy (comes with scikit-learn if needed)
+# KEEP: openpyxl for Excel support
 openpyxl==3.1.2
 
-# Machine Learning
-opencv-python-headless==4.9.0.80
+# Machine Learning - LIGHTER alternatives
+# REMOVED: opencv-python-headless (100MB)
+# Use PIL/Pillow for basic image ops instead
+scikit-learn==1.3.2  # Lighter than latest, includes numpy
 
-# NLP - Updated versions for compatibility
-spacy==3.7.2
-sentence-transformers==3.0.1
-huggingface-hub==0.24.0
+# NLP - CRITICAL OPTIMIZATION: Remove heavy transformers
+# REMOVED: spacy (200MB with models)
+# REMOVED: sentence-transformers (150MB)
+# REMOVED: huggingface-hub
+# Use lightweight alternatives:
+nltk==3.8.1  # Much lighter NLP
+textblob==0.17.1  # Simple NLP tasks
 
 # Text Processing
 fuzzywuzzy==0.18.0
@@ -50,3 +57,8 @@ cachetools==5.3.2
 # Security
 cryptography==41.0.7
 bcrypt==4.1.2
+
+# Memory efficiency
+joblib==1.3.2  # For model caching
+
+# TOTAL ESTIMATED SIZE: ~200MB (vs 830MB original)
