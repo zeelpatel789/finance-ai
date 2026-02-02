@@ -31,9 +31,10 @@ openpyxl==3.1.2
 # Machine Learning
 opencv-python-headless==4.9.0.80
 
-# NLP - Lightweight versions
+# NLP - Updated versions for compatibility
 spacy==3.7.2
-sentence-transformers==2.2.2
+sentence-transformers==3.0.1
+huggingface-hub==0.24.0
 
 # Text Processing
 fuzzywuzzy==0.18.0
